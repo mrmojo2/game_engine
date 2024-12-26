@@ -24,6 +24,7 @@ public:
 
 
 	Shape* shape = nullptr;
+	bool isColliding = false;
 
 	void integrateLinear(float dt);		//performs euler integration
 	void integrateAngular(float dt);

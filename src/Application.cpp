@@ -2,6 +2,7 @@
 #include "Graphics.h"
 #include "Constants.h"
 #include "Force.h"
+#include "Collision.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -14,11 +15,11 @@ void Application::setup(){
 	running = Graphics::OpenWindow();
 	
 	Body* b1 = new Body(Circle(100),700,500,2);
-	Body* b3 = new Body(Box(200,200),1000,200,2);
-	Body* b2 = new Body(Box(100,100),500,200,2);
+	Body* b2 = new Body(Circle(170),300,600,5);
+	//Body* b3 = new Body(Box(200,200),1000,200,2);
+	//Body* b2 = new Body(Box(100,100),500,200,2);
 	bodies.push_back(b1);
 	bodies.push_back(b2);
-	bodies.push_back(b3);
 
 }
 
@@ -55,6 +56,9 @@ void Application::input(){
 			case SDL_MOUSEMOTION:
 				mousePos.x = event.motion.x;
 				mousePos.y = event.motion.y;
+				
+				//bodies[0]->position = mousePos;
+
 				break;
 
 			/*case SDL_MOUSEBUTTONDOWN:{
@@ -115,7 +119,7 @@ void Application::update(){
 	//apply forces to the bodies
 	for(auto body:bodies){
 		//weight force
-		//body->addForce(Vec2(0.0,9.8*PIXELS_PER_METER*body->mass));
+		body->addForce(Vec2(0.0,9.8*PIXELS_PER_METER*body->mass));
 		
 		//pushForce from keyboard
 		body->addForce(pushForce);
@@ -125,7 +129,7 @@ void Application::update(){
 		//body->addForce(drag);
 		
 		//apply torque
-		body->addTorque(200);
+		//body->addTorque(200);
 	}
 
 
@@ -138,6 +142,28 @@ void Application::update(){
 		if(isPolygon){
 			Polygon* p = (Polygon* ) body->shape;
 			p->updateWorldVertices(body->angle, body->position);
+		}
+	}
+
+	//perform collision detection between bodies
+	
+	for(int i=0; i < bodies.size()-1 ; i++){
+		for(int j = i+1 ; j < bodies.size() ; j++){
+			Body* a = bodies[i];
+			Body* b = bodies[j];
+			
+			a->isColliding = false;
+			b->isColliding = false;
+
+			CollisionInfo ci;
+			if(CollisionDetection::isColliding(a,b,ci)){
+				a->isColliding = true;
+				b->isColliding = true;
+				
+				Vec2 test = ci.normal * ci.depth;
+				b->position += test;
+				a->position -= test;
+			}
 		}
 	}
 
@@ -166,7 +192,6 @@ void Application::update(){
 void Application::render(){
 	Graphics::ClearScreen(0xFF112233);
 	
-
 	if(drawMouseImpulseLine){
 		Graphics::DrawLine(bodies[mouseImpulseBodyIndex]->position.x, bodies[mouseImpulseBodyIndex]->position.y, mousePos.x, mousePos.y, 0xff0000ff);
 	}
@@ -178,12 +203,13 @@ void Application::render(){
 	}	
 	//render the bodies
 	for(auto body:bodies){
+		Uint32 color = body->isColliding ? 0xff0000ff: 0xffffffff; 
 		if(body->shape->getShapeType() == CIRCLE){
 			Circle* c = (Circle* )body->shape;
-			Graphics::DrawCircle(body->position.x,body->position.y,c->radius,body->angle,0xffffffff);
+			Graphics::DrawCircle(body->position.x,body->position.y,c->radius,body->angle,color);
 		}else if(body->shape->getShapeType() == BOX){
 			Box* b = (Box* )body->shape;
-			Graphics::DrawPolygon(body->position.x, body->position.y, b->worldVertices,0xffffffff);
+			Graphics::DrawPolygon(body->position.x, body->position.y, b->worldVertices,color);
 			b->clearWorldVertices();
 		}
 	}
