@@ -13,14 +13,16 @@ void Collision::resolvePenetration(){
 }
 
 void Collision::resolveCollision(){
+	resolvePenetration();
+
 	//calculate coefficient of restituion as harmonic mean of the bounciness property
 	float e1 = a->bounciness;
 	float e2 = b->bounciness;
-	float e =( 2 * e1 * 2 )	/ (e1 + e2);
+	float e =( 2 * e1 * e2 ) / (e1 + e2);
 
 	//calculate the impulse
-	Vec2 v_rel = a->velocity - b->velocity;
-	float J_mag = -(e+1)/(a->invMass + b->invMass) * (v_rel * normal); 			//think about divide by 0 later (static objects dont really collide)
+	float v_separating = (a->velocity - b->velocity) * normal;			//it is the speed of one object relative to another, in the direction between the two objects
+	float J_mag = (-(e+1) * v_separating )/(a->invMass + b->invMass); 		//think about divide by 0 later (static objects dont really collide)
 
 	//apply the  impuse
 	a->addImpulse(normal * J_mag);

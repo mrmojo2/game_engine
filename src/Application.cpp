@@ -15,7 +15,7 @@ void Application::setup(){
 	running = Graphics::OpenWindow();
 	
 	Body* b1 = new Body(Circle(50),50,50,10);
-	Body* b2 = new Body(Circle(100),Graphics::windowWidth - 100,100,100);
+	Body* b2 = new Body(Circle(50),Graphics::windowWidth - 50,50,10);
 	
 	b1->velocity = Vec2(100,100);
 	b2->velocity = Vec2(-100,100);
