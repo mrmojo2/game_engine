@@ -16,21 +16,24 @@ public:
 
 	//angular motion properts
 	float angle = 0;
-	float angular_velocity = 0;			//only 2d implemented so these are float for now...
+	float angular_velocity = 0;			//only 2d vector implemented so these are float for now...
 	float angular_acceleration = 0;
 	float netTorque = 0;
 	float moi;
 	float invMOI;
 
+	float bounciness = 1;				//used to calculate the coefficient of restituion of two colliding bodies
 
 	Shape* shape = nullptr;
 	bool isColliding = false;
+	bool isStatic();
 
-	void integrateLinear(float dt);		//performs euler integration
+	void integrateLinear(float dt);			//performs euler integration
 	void integrateAngular(float dt);
 	
 	void addForce(const Vec2& f);
 	void addTorque(const float f);
+	void addImpulse(const Vec2& j);
 	
 	Body();
 	Body(const Shape& shape,int x, int y, float mass);

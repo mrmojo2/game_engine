@@ -14,13 +14,14 @@ bool Application::isRunning(){
 void Application::setup(){
 	running = Graphics::OpenWindow();
 	
-	Body* b1 = new Body(Circle(100),700,500,2);
-	Body* b2 = new Body(Circle(170),300,600,5);
-	//Body* b3 = new Body(Box(200,200),1000,200,2);
-	//Body* b2 = new Body(Box(100,100),500,200,2);
+	Body* b1 = new Body(Circle(50),50,50,10);
+	Body* b2 = new Body(Circle(100),Graphics::windowWidth - 100,100,100);
+	
+	b1->velocity = Vec2(100,100);
+	b2->velocity = Vec2(-100,100);
+
 	bodies.push_back(b1);
 	bodies.push_back(b2);
-
 }
 
 void Application::input(){
@@ -57,7 +58,7 @@ void Application::input(){
 				mousePos.x = event.motion.x;
 				mousePos.y = event.motion.y;
 				
-				//bodies[0]->position = mousePos;
+				//bodies[1]->position = mousePos;
 
 				break;
 
@@ -119,7 +120,7 @@ void Application::update(){
 	//apply forces to the bodies
 	for(auto body:bodies){
 		//weight force
-		body->addForce(Vec2(0.0,9.8*PIXELS_PER_METER*body->mass));
+		//body->addForce(Vec2(0.0,9.8*PIXELS_PER_METER*body->mass));
 		
 		//pushForce from keyboard
 		body->addForce(pushForce);
@@ -155,14 +156,12 @@ void Application::update(){
 			a->isColliding = false;
 			b->isColliding = false;
 
-			CollisionInfo ci;
-			if(CollisionDetection::isColliding(a,b,ci)){
+			Collision collision;
+			if(CollisionDetection::isColliding(a,b,collision)){
 				a->isColliding = true;
 				b->isColliding = true;
 				
-				Vec2 test = ci.normal * ci.depth;
-				b->position += test;
-				a->position -= test;
+				collision.resolveCollision();
 			}
 		}
 	}

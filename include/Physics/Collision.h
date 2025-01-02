@@ -5,19 +5,22 @@
 #include "Body.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
-//	class to store information about each collision
+//	class to handle collision of two bodies
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class CollisionInfo{
+class Collision{
 public:
+	//information of collision of two bodies
 	Body* a;
 	Body* b;
-	
 	Vec2 normal;
 	Vec2 contactPoint1;
-	Vec2 contactPoint2;
-	
+	Vec2 contactPoint2;	
 	float depth;
+	
+	
+	void resolvePenetration();
+	void resolveCollision();
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -26,8 +29,8 @@ public:
 
 class CollisionDetection{
 public:
-	static bool isColliding(Body* a, Body* b, CollisionInfo& ci);
-	static bool isCollidingCircleCircle(Body* a, Body* b, CollisionInfo& ci);
+	static bool isColliding(Body* a, Body* b, Collision& ci);
+	static bool isCollidingCircleCircle(Body* a, Body* b, Collision& ci);
 };
 
 
