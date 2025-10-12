@@ -20,7 +20,7 @@ void Application::setup(){
 	
 
 	Body *b1 = new Body(Box(100.0,100.0),Graphics::windowWidth/2,Graphics::windowHeight/2,1.0);
-	Body *b2 = new Body(Box(100.0,100.0),mousePosX,mousePosY,1.0);
+	Body *b2 = new Body(Box(100.0,100.0),Graphics::windowWidth/2+120,Graphics::windowHeight/2,1.0);
 	b1->angular_velocity = 0.5;
 	b2->angular_velocity = 0.3;
 	bodies.push_back(b1);	
@@ -60,11 +60,6 @@ void Application::input(){
 			case SDL_MOUSEMOTION:
 				mousePosX = event.motion.x;
 				mousePosY = event.motion.y;
-				
-				bodies[1]->position.x = mousePosX;
-				bodies[1]->position.y = mousePosY;
-				//bodies[1]->position = mousePos;
-
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(event.button.button == SDL_BUTTON_LEFT){
@@ -142,7 +137,6 @@ void Application::update(){
 		//apply torque
 		//body->addTorque(200);
 	}
-	//bodies[0]->addTorque(200.0f);
 
 
 	//perform integration, transformation and rotation
@@ -159,7 +153,7 @@ void Application::update(){
 
 
 	//perform collision detection between bodies
-	if(bodies.size()>0){	
+	if(bodies.size()>=2){	
 	for(int i=0; i < bodies.size()-1 ; i++){
 		for(int j = i+1 ; j < bodies.size() ; j++){
 			Body* a = bodies[i];

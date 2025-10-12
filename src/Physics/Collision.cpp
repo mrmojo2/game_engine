@@ -1,6 +1,7 @@
 #include "Collision.h"
 
 #include <limits>
+#include <iostream>
 
 
 void Collision::resolvePenetration(){
@@ -15,6 +16,8 @@ void Collision::resolvePenetration(){
 }
 
 void Collision::resolveCollision(){
+if(a->shape->getShapeType() == CIRCLE && b->shape->getShapeType() == CIRCLE){
+	std::cout << "called resolveCollision" << std::endl;
 	resolvePenetration();
 
 	//calculate coefficient of restituion as harmonic mean of the bounciness property
@@ -30,7 +33,7 @@ void Collision::resolveCollision(){
 	a->addImpulse(normal * J_mag);
 	b->addImpulse(-normal * J_mag);
 }
-
+}
 
 
 bool CollisionDetection::isColliding(Body* a, Body* b, Collision& ci){
@@ -98,9 +101,14 @@ bool CollisionDetection::isCollidingPolygonPolygon(Body* a, Body* b, Collision& 
 	//find the separation between a and b and b and a
 	const Polygon* apoly = (Polygon*)a->shape;
 	const Polygon* bpoly = (Polygon*)b->shape;
+	
+	ci.a = a;
+	ci.b = b;
 
 	if(findMinSeparation(apoly,bpoly)<=0 && findMinSeparation(bpoly,apoly)<=0){
 		return true;
 	}
+
+
 	return false;
 }
