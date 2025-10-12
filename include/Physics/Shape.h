@@ -41,6 +41,7 @@ public:
 	~Polygon();
 	ShapeType getShapeType() const;
 	Shape* getPointer() const;
+	Vec2 getEdge(int index) const;
 	float getMOI(float mass) const;
 	void updateWorldVertices(float angle, const Vec2& position);
 	void clearWorldVertices();

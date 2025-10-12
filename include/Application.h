@@ -13,12 +13,14 @@ class Application{
 private:
 	bool running = false;
 	std::vector<Body*> bodies;
-	std::vector<SpringMass> springMassSystems;
-	Vec2 pushForce = Vec2(0,0);		//to give a force through keyboard
-	Vec2 mousePos = Vec2(0,0);		
+	Vec2 pushForce = Vec2(0,0);			//to give a force through keyboard
+	int mousePosX;
+	int mousePosY;	
 	
 	bool drawMouseImpulseLine = false;		//to give a force to a body using mouse
 	int mouseImpulseBodyIndex;
+
+	int previousFrameTime;
 
 public:
 	Application() = default;

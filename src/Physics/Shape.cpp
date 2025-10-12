@@ -56,6 +56,12 @@ void Polygon::clearWorldVertices(){
 	worldVertices.clear();
 }
 
+Vec2 Polygon::getEdge(const int index) const {
+	int next_index = (index + 1) % worldVertices.size();
+
+	return (worldVertices[next_index] - worldVertices[index]);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //				BOX Shape Implementation

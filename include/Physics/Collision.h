@@ -31,6 +31,7 @@ class CollisionDetection{
 public:
 	static bool isColliding(Body* a, Body* b, Collision& ci);
 	static bool isCollidingCircleCircle(Body* a, Body* b, Collision& ci);
+	static bool isCollidingPolygonPolygon(Body* a, Body* b, Collision& ci);
 };
 
 

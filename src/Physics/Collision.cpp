@@ -1,5 +1,7 @@
 #include "Collision.h"
 
+#include <limits>
+
 
 void Collision::resolvePenetration(){
 	if(a->isStatic() && b->isStatic()) return;
@@ -37,6 +39,8 @@ bool CollisionDetection::isColliding(Body* a, Body* b, Collision& ci){
 
 	if(ashapetype == CIRCLE && bshapetype == CIRCLE){
 		return isCollidingCircleCircle(a,b,ci);
+	}else if((ashapetype == POLYGON || ashapetype == BOX) && (bshapetype == POLYGON || bshapetype == BOX)){
+		return isCollidingPolygonPolygon(a,b,ci);	
 	}
 }
 
@@ -61,4 +65,42 @@ bool CollisionDetection::isCollidingCircleCircle(Body* a, Body* b, Collision& ci
 	ci.depth = (ci.contactPoint2-ci.contactPoint1).magnitude();
 
 	return true;
+}
+
+//computes the separation between polygons a and b
+float findMinSeparation(const Polygon* a, const Polygon* b){
+	float separation = std::numeric_limits<float>::lowest();
+
+	//loop all vertices of a 
+	//find the normal axis
+	//loop all the vertices of b
+	//	project vertex of b onto normal axis
+	//	keep track of min separation
+	//return the best separation of all the axis
+	
+	int i=0;
+	for(auto va:a->worldVertices){
+		Vec2 normal = a->getEdge(i).normal();
+		float min_separation = std::numeric_limits<float>::max();
+		for(auto vb:b->worldVertices){
+			float projection = normal * (vb-va);
+			if(projection < min_separation)	min_separation = projection;
+		}
+		if(min_separation > separation){
+			separation = min_separation;
+		}
+		i++;
+	}
+	return separation;
+}
+
+bool CollisionDetection::isCollidingPolygonPolygon(Body* a, Body* b, Collision& ci){
+	//find the separation between a and b and b and a
+	const Polygon* apoly = (Polygon*)a->shape;
+	const Polygon* bpoly = (Polygon*)b->shape;
+
+	if(findMinSeparation(apoly,bpoly)<=0 && findMinSeparation(bpoly,apoly)<=0){
+		return true;
+	}
+	return false;
 }

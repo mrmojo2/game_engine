@@ -13,15 +13,18 @@ bool Application::isRunning(){
 
 void Application::setup(){
 	running = Graphics::OpenWindow();
+	previousFrameTime = SDL_GetTicks();
 	
-	Body* b1 = new Body(Circle(50),50,50,10);
-	Body* b2 = new Body(Circle(50),Graphics::windowWidth - 50,50,10);
-	
-	b1->velocity = Vec2(100,100);
-	b2->velocity = Vec2(-100,100);
 
-	bodies.push_back(b1);
-	bodies.push_back(b2);
+	SDL_GetMouseState(&mousePosX, &mousePosY);
+	
+
+	Body *b1 = new Body(Box(100.0,100.0),Graphics::windowWidth/2,Graphics::windowHeight/2,1.0);
+	Body *b2 = new Body(Box(100.0,100.0),mousePosX,mousePosY,1.0);
+	b1->angular_velocity = 0.5;
+	b2->angular_velocity = 0.3;
+	bodies.push_back(b1);	
+	bodies.push_back(b2);	
 }
 
 void Application::input(){
@@ -55,11 +58,17 @@ void Application::input(){
 					pushForce.x = 0;
 				break;
 			case SDL_MOUSEMOTION:
-				mousePos.x = event.motion.x;
-				mousePos.y = event.motion.y;
+				mousePosX = event.motion.x;
+				mousePosY = event.motion.y;
 				
+				bodies[1]->position.x = mousePosX;
+				bodies[1]->position.y = mousePosY;
 				//bodies[1]->position = mousePos;
 
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				if(event.button.button == SDL_BUTTON_LEFT){
+				}
 				break;
 
 			/*case SDL_MOUSEBUTTONDOWN:{
@@ -100,7 +109,7 @@ void Application::input(){
 }
 void Application::update(){
 	//maintain constant fps
-	static int  previousFrameTime; 
+	//static int  previousFrameTime; 
 	int delay = MILLISECONDS_PER_FRAME - (SDL_GetTicks()-previousFrameTime);
 	if(delay>0){				//delay can be negative if a frame loop take more time than MILLISECONDS_PER_FRAME
 		SDL_Delay(delay);
@@ -124,6 +133,7 @@ void Application::update(){
 		
 		//pushForce from keyboard
 		body->addForce(pushForce);
+
 		
 		//drag force
 		Vec2 drag = Force::getDragForce(*body, 0.002);
@@ -132,6 +142,7 @@ void Application::update(){
 		//apply torque
 		//body->addTorque(200);
 	}
+	//bodies[0]->addTorque(200.0f);
 
 
 	//perform integration, transformation and rotation
@@ -146,8 +157,9 @@ void Application::update(){
 		}
 	}
 
+
 	//perform collision detection between bodies
-	
+	if(bodies.size()>0){	
 	for(int i=0; i < bodies.size()-1 ; i++){
 		for(int j = i+1 ; j < bodies.size() ; j++){
 			Body* a = bodies[i];
@@ -164,6 +176,7 @@ void Application::update(){
 				collision.resolveCollision();
 			}
 		}
+	}
 	}
 
 
@@ -187,25 +200,21 @@ void Application::update(){
 			}	
 		}
 	}
+	
 }
 void Application::render(){
 	Graphics::ClearScreen(0xFF112233);
 	
 	if(drawMouseImpulseLine){
-		Graphics::DrawLine(bodies[mouseImpulseBodyIndex]->position.x, bodies[mouseImpulseBodyIndex]->position.y, mousePos.x, mousePos.y, 0xff0000ff);
+		//Graphics::DrawLine(bodies[mouseImpulseBodyIndex]->position.x, bodies[mouseImpulseBodyIndex]->position.y, , mousePos.y, 0xff0000ff);
 	}
 
-	//render springs
-	for(auto sm:springMassSystems){
-		Graphics::DrawFillCircle(sm.sp->anchor->x, sm.sp->anchor->y,2,0xff0011e3);
-		Graphics::DrawLine(sm.sp->anchor->x, sm.sp->anchor->y,sm.bob->position.x, sm.bob->position.y,0xffffffff);
-	}	
 	//render the bodies
 	for(auto body:bodies){
 		Uint32 color = body->isColliding ? 0xff0000ff: 0xffffffff; 
 		if(body->shape->getShapeType() == CIRCLE){
 			Circle* c = (Circle* )body->shape;
-			Graphics::DrawCircle(body->position.x,body->position.y,c->radius,body->angle,color);
+			Graphics::DrawFillCircle(body->position.x,body->position.y,c->radius,color);
 		}else if(body->shape->getShapeType() == BOX){
 			Box* b = (Box* )body->shape;
 			Graphics::DrawPolygon(body->position.x, body->position.y, b->worldVertices,color);
@@ -217,9 +226,6 @@ void Application::render(){
 void Application::destroy(){
 	for(auto body:bodies){
 		delete body;
-	}
-	for(auto sm:springMassSystems){
-		delete sm.sp;
 	}
 	Graphics::CloseWindow();
 }
