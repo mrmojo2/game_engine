@@ -34,7 +34,7 @@ public:
 	Vec2& operator += (const Vec2& v);
 	Vec2& operator -= (const Vec2& v);
 	
-	friend float cross(const Vec2& v1, const Vec2& v2);
+	friend float cross(const Vec2& v1, const Vec2& v2);		//cross of two 2d vector will only have the z component so storing just the magnitude of that z component. can use the vector as (0,0,mag) if needed
 };
 
 

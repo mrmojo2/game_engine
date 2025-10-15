@@ -1,5 +1,5 @@
 #include "Shape.h"
-
+#include <limits>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //				Circle Shape Implementation
@@ -62,6 +62,38 @@ Vec2 Polygon::getEdge(const int index) const {
 	return (worldVertices[next_index] - worldVertices[index]);
 }
 
+//computes the separation between polygons a and b
+	//loop all vertices of a 
+	//find the normal axis
+	//loop all the vertices of b
+	//	project vertex of b onto normal axis
+	//	keep track of min separation
+	//return the best separation of all the axis
+float Polygon::findMinSeparation(const Polygon* other,Vec2& contact_edge, Vec2& contact_vertex) const{
+	float separation = std::numeric_limits<float>::lowest();
+	
+	int i=0;
+	for(auto va:this->worldVertices){
+		Vec2 edge = this->getEdge(i);
+		Vec2 normal = edge.normal();
+		float min_separation = std::numeric_limits<float>::max();
+		Vec2 minVertex;
+		for(auto vb:other->worldVertices){
+			float projection = normal * (vb-va);
+			if(projection < min_separation)	{
+				min_separation = projection;
+				minVertex = vb;
+			};
+		}
+		if(min_separation > separation){
+			separation = min_separation;
+			contact_edge = edge;
+			contact_vertex = minVertex;
+		}
+		i++;
+	}
+	return separation;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //				BOX Shape Implementation

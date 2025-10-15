@@ -3,6 +3,7 @@
 #include "Constants.h"
 #include "Force.h"
 #include "Collision.h"
+#include "Utils.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -17,14 +18,25 @@ void Application::setup(){
 	
 
 	SDL_GetMouseState(&mousePosX, &mousePosY);
+
+	int ww = Graphics::windowWidth;
+	int wh = Graphics::windowHeight;
 	
 
-	Body *b1 = new Body(Box(100.0,100.0),Graphics::windowWidth/2,Graphics::windowHeight/2,1.0);
-	Body *b2 = new Body(Box(100.0,100.0),Graphics::windowWidth/2+120,Graphics::windowHeight/2,1.0);
-	b1->angular_velocity = 0.5;
-	b2->angular_velocity = 0.3;
-	bodies.push_back(b1);	
-	bodies.push_back(b2);	
+	Body *bottom = new Body(Box(ww-10,100),ww/2,wh - 75,0.0);
+	bottom->elasticity = 0.5;
+	bodies.push_back(bottom);
+	
+	Body *b2 = new Body(Box(200,200),ww/2,wh/2,0.0);
+	b2->angle = 0.9;
+	b2->elasticity = 0.3;
+	bodies.push_back(b2);
+ 
+
+	/*Body *b3 = new Body(Box(200,200),0,0,1.0);
+	//b3->angle = 0.45;
+	b3->elasticity = 0.3;
+	bodies.push_back(b3);*/
 }
 
 void Application::input(){
@@ -60,49 +72,25 @@ void Application::input(){
 			case SDL_MOUSEMOTION:
 				mousePosX = event.motion.x;
 				mousePosY = event.motion.y;
+
+				/*bodies[2]->position.x = mousePosX;
+				bodies[2]->position.y = mousePosY;*/
+
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(event.button.button == SDL_BUTTON_LEFT){
+					Body *box = new Body(Box(100,100),mousePosX, mousePosY, 1.0);
+					box->angle = Utils::get_random_float(0.0,3.1415);
+					box->elasticity  = 0.4;
+					bodies.push_back(box);
 				}
 				break;
-
-			/*case SDL_MOUSEBUTTONDOWN:{
-				int curMouseX = event.motion.x;
-				int curMouseY = event.motion.y;		
-				if(event.button.button == SDL_BUTTON_LEFT){
-					for(int i=0;i<bodies.size();i++){
-						if( (curMouseX > bodies[i]->position.x - (bodies[i]->radius+5)) && (curMouseX < bodies[i]->position.x + (bodies[i]->radius+5)) && 
-						    (curMouseY > bodies[i]->position.y - (bodies[i]->radius+5)) && (curMouseY < bodies[i]->position.y + (bodies[i]->radius+5)) ){
-							drawMouseImpulseLine = true;
-							mouseImpulseBodyIndex = i;
-						}
-					}
-					buttonDownTime = SDL_GetTicks();
-				}
-				break;
-			}
-			
-			case SDL_MOUSEBUTTONUP:
-				if(event.button.button == SDL_BUTTON_LEFT){
-					buttonUpTime = SDL_GetTicks();
-					if(drawMouseImpulseLine){
-						drawMouseImpulseLine = false;
-						Vec2 impulseDir = (bodies[mouseImpulseBodyIndex]->position - mousePos).unit();
-						float impulseMag = (bodies[mouseImpulseBodyIndex]->position - mousePos).magnitude();
-						bodies[mouseImpulseBodyIndex]->velocity = impulseDir*impulseMag;
-					}else{
-						//Body* p = new Body(event.motion.x, event.motion.y, (buttonUpTime-buttonDownTime)/50);
-						//bodies.push_back(p);
-					}
-				}
-				break;*/
-				
-
 
 		}
 	}
 }
 void Application::update(){
+	Graphics::ClearScreen(0xFF112233);
 	//maintain constant fps
 	//static int  previousFrameTime; 
 	int delay = MILLISECONDS_PER_FRAME - (SDL_GetTicks()-previousFrameTime);
@@ -124,7 +112,7 @@ void Application::update(){
 	//apply forces to the bodies
 	for(auto body:bodies){
 		//weight force
-		//body->addForce(Vec2(0.0,9.8*PIXELS_PER_METER*body->mass));
+		body->addForce(Vec2(0.0,9.8*PIXELS_PER_METER*body->mass));
 		
 		//pushForce from keyboard
 		body->addForce(pushForce);
@@ -166,6 +154,10 @@ void Application::update(){
 			if(CollisionDetection::isColliding(a,b,collision)){
 				a->isColliding = true;
 				b->isColliding = true;
+
+				Graphics::DrawFillCircle(collision.contactPoint1.x, collision.contactPoint1.y,5,0xffff0000);
+				Graphics::DrawFillCircle(collision.contactPoint2.x, collision.contactPoint2.y,5,0xff0000ff);
+
 				
 				collision.resolveCollision();
 			}
@@ -197,7 +189,6 @@ void Application::update(){
 	
 }
 void Application::render(){
-	Graphics::ClearScreen(0xFF112233);
 	
 	if(drawMouseImpulseLine){
 		//Graphics::DrawLine(bodies[mouseImpulseBodyIndex]->position.x, bodies[mouseImpulseBodyIndex]->position.y, , mousePos.y, 0xff0000ff);

@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <iostream>
+#include <cmath>
 
 
 void Collision::resolvePenetration(){
@@ -16,23 +17,39 @@ void Collision::resolvePenetration(){
 }
 
 void Collision::resolveCollision(){
-if(a->shape->getShapeType() == CIRCLE && b->shape->getShapeType() == CIRCLE){
-	std::cout << "called resolveCollision" << std::endl;
 	resolvePenetration();
 
-	//calculate coefficient of restituion as harmonic mean of the bounciness property
-	float e1 = a->bounciness;
-	float e2 = b->bounciness;
+	//calculate coefficient of restituion as harmonic mean of the elasticity property
+	float e1 = a->elasticity;
+	float e2 = b->elasticity;
 	float e =( 2 * e1 * e2 ) / (e1 + e2);
 
-	//calculate the impulse
-	float v_separating = (a->velocity - b->velocity) * normal;			//it is the speed of one object relative to another, in the direction between the two objects
-	float J_mag = (-(e+1) * v_separating )/(a->invMass + b->invMass); 		//think about divide by 0 later (static objects dont really collide)
+	/*if(a->shape->getShapeType() == CIRCLE && b->shape->getShapeType() == CIRCLE){
 
-	//apply the  impuse
-	a->addImpulse(normal * J_mag);
-	b->addImpulse(-normal * J_mag);
-}
+		//calculate the impulse
+		float v_separating = (a->velocity - b->velocity) * normal;				//relative velocity of a and b along the collision normal
+		float J_mag = (-(e+1) * v_separating )/(a->invMass + b->invMass); 		//think about divide by 0 later (static objects dont really collide)
+
+		//apply the  impuse
+		a->addImpulse(normal * J_mag);
+		b->addImpulse(-normal * J_mag);
+	}
+	if(a->shape->getShapeType() == BOX && b->shape->getShapeType() == BOX){*/
+
+		Vec2 ra = contactPoint2 - a->position;
+		Vec2 rb = contactPoint1 - b->position;
+		Vec2 va = a->velocity + Vec2(-a->angular_velocity*ra.y, a->angular_velocity*ra.x);		//va = vcom + (w x ra)
+		Vec2 vb = b->velocity + Vec2(-b->angular_velocity*rb.y, b->angular_velocity*rb.x);
+
+		float v_separating = (va - vb) * normal;							//relative velocity along the collision normal (dot product)
+
+
+
+		float J_mag = (-(e+1)*v_separating)/(a->invMass + b->invMass + pow(cross(ra,normal),2)*a->invMOI + pow(cross(rb,normal),2)*b->invMOI);
+
+		a->addImpulse(normal * J_mag, ra);
+		b->addImpulse(-normal * J_mag, rb);
+	//}
 }
 
 
@@ -70,45 +87,36 @@ bool CollisionDetection::isCollidingCircleCircle(Body* a, Body* b, Collision& ci
 	return true;
 }
 
-//computes the separation between polygons a and b
-float findMinSeparation(const Polygon* a, const Polygon* b){
-	float separation = std::numeric_limits<float>::lowest();
-
-	//loop all vertices of a 
-	//find the normal axis
-	//loop all the vertices of b
-	//	project vertex of b onto normal axis
-	//	keep track of min separation
-	//return the best separation of all the axis
-	
-	int i=0;
-	for(auto va:a->worldVertices){
-		Vec2 normal = a->getEdge(i).normal();
-		float min_separation = std::numeric_limits<float>::max();
-		for(auto vb:b->worldVertices){
-			float projection = normal * (vb-va);
-			if(projection < min_separation)	min_separation = projection;
-		}
-		if(min_separation > separation){
-			separation = min_separation;
-		}
-		i++;
-	}
-	return separation;
-}
 
 bool CollisionDetection::isCollidingPolygonPolygon(Body* a, Body* b, Collision& ci){
 	//find the separation between a and b and b and a
 	const Polygon* apoly = (Polygon*)a->shape;
 	const Polygon* bpoly = (Polygon*)b->shape;
+	Vec2 a_edge, b_edge;
+	Vec2 a_point,b_point;
 	
-	ci.a = a;
-	ci.b = b;
-
-	if(findMinSeparation(apoly,bpoly)<=0 && findMinSeparation(bpoly,apoly)<=0){
-		return true;
+	float ab_separation = apoly->findMinSeparation(bpoly,a_edge,b_point);
+	if(ab_separation>=0){
+		return false;
+	}
+	
+	float ba_separation = bpoly->findMinSeparation(apoly,b_edge,a_point);
+	if(ba_separation>=0){
+		return false;
 	}
 
-
-	return false;
+	ci.a = a;
+	ci.b = b;
+	if(ab_separation > ba_separation){
+		ci.normal = a_edge.normal();
+		ci.depth = -1.0 * ab_separation;
+		ci.contactPoint1 = b_point;
+		ci.contactPoint2 = b_point + ci.normal * ci.depth;
+	}else if(ba_separation > ab_separation){
+		ci.normal = -b_edge.normal();				//because in resolvePenetration() it is assumed that the collision normal is always from a to b
+		ci.depth = -1.0 * ba_separation;
+		ci.contactPoint2 = a_point;
+		ci.contactPoint1 = a_point - ci.normal * ci.depth;		//because normal is going from a to b to find contanct point of b we must take normal go
+	}
+	return true;
 }

@@ -45,6 +45,7 @@ public:
 	float getMOI(float mass) const;
 	void updateWorldVertices(float angle, const Vec2& position);
 	void clearWorldVertices();
+	float findMinSeparation(const Polygon* other,Vec2& contact_edge, Vec2& contact_vertex) const;
 };
 
 class Box:public Polygon {

@@ -14,8 +14,8 @@ public:
 	Body* a;
 	Body* b;
 	Vec2 normal;
-	Vec2 contactPoint1;
-	Vec2 contactPoint2;	
+	Vec2 contactPoint1;			//contact point of b at shape a
+	Vec2 contactPoint2;			//contact point of a at shape b
 	float depth;
 	
 	

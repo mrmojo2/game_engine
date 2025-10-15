@@ -53,5 +53,12 @@ bool Body::isStatic(){
 }
 
 void Body::addImpulse(const Vec2& j){
+	if(isStatic()) return;
 	velocity += j * invMass;
+}
+
+void Body::addImpulse(const Vec2& j, const Vec2& r){
+	if(isStatic()) return;
+	velocity += j * invMass;
+	angular_velocity += (cross(r,j))*invMOI;			//J_angular = r x J_linear 
 }
