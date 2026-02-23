@@ -62,3 +62,8 @@ void Body::addImpulse(const Vec2& j, const Vec2& r){
 	velocity += j * invMass;
 	angular_velocity += (cross(r,j))*invMOI;			//J_angular = r x J_linear 
 }
+
+void Body::addImpulseTangential(const Vec2& j, const Vec2& r){
+	if(isStatic()) return;
+	angular_velocity += (cross(r,j))*invMOI;			//J_angular = r x J_linear 
+}

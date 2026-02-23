@@ -23,6 +23,7 @@ public:
 	float invMOI;
 
 	float elasticity = 1;				//used to calculate the coefficient of restituion of two colliding bodies
+	float friction = 0.9;
 
 	Shape* shape = nullptr;
 	bool isColliding = false;
@@ -35,6 +36,7 @@ public:
 	void addTorque(const float f);
 	void addImpulse(const Vec2& j);
 	void addImpulse(const Vec2& j, const Vec2& r);	//to add angular impulse due to collision at r
+	void addImpulseTangential(const Vec2& j, const Vec2& r);	//to add angular impulse due to collision at r
 	
 	Body();
 	Body(const Shape& shape,int x, int y, float mass);

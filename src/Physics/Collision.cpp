@@ -19,37 +19,38 @@ void Collision::resolvePenetration(){
 void Collision::resolveCollision(){
 	resolvePenetration();
 
+	Vec2 tangent = normal.normal();
+
 	//calculate coefficient of restituion as harmonic mean of the elasticity property
 	float e1 = a->elasticity;
 	float e2 = b->elasticity;
 	float e =( 2 * e1 * e2 ) / (e1 + e2);
 
-	/*if(a->shape->getShapeType() == CIRCLE && b->shape->getShapeType() == CIRCLE){
-
-		//calculate the impulse
-		float v_separating = (a->velocity - b->velocity) * normal;				//relative velocity of a and b along the collision normal
-		float J_mag = (-(e+1) * v_separating )/(a->invMass + b->invMass); 		//think about divide by 0 later (static objects dont really collide)
-
-		//apply the  impuse
-		a->addImpulse(normal * J_mag);
-		b->addImpulse(-normal * J_mag);
-	}
-	if(a->shape->getShapeType() == BOX && b->shape->getShapeType() == BOX){*/
-
-		Vec2 ra = contactPoint2 - a->position;
-		Vec2 rb = contactPoint1 - b->position;
-		Vec2 va = a->velocity + Vec2(-a->angular_velocity*ra.y, a->angular_velocity*ra.x);		//va = vcom + (w x ra)
-		Vec2 vb = b->velocity + Vec2(-b->angular_velocity*rb.y, b->angular_velocity*rb.x);
-
-		float v_separating = (va - vb) * normal;							//relative velocity along the collision normal (dot product)
+	//calculate friction coefficient
+	float f1 = a->friction;
+	float f2 = b->friction;
+	float f = (2*f1*f2)/(f1+f2);
 
 
+	Vec2 ra = contactPoint2 - a->position;
+	Vec2 rb = contactPoint1 - b->position;
+	Vec2 va = a->velocity + Vec2(-a->angular_velocity*ra.y, a->angular_velocity*ra.x);		//va = vcom + (w x ra)
+	Vec2 vb = b->velocity + Vec2(-b->angular_velocity*rb.y, b->angular_velocity*rb.x);
 
-		float J_mag = (-(e+1)*v_separating)/(a->invMass + b->invMass + pow(cross(ra,normal),2)*a->invMOI + pow(cross(rb,normal),2)*b->invMOI);
+	Vec2 v_relative = va - vb;
+	float v_rel_normal = v_relative * normal;							//relative velocity along the collision normal (dot product)
+	float v_rel_tangential = v_relative * tangent;
 
-		a->addImpulse(normal * J_mag, ra);
-		b->addImpulse(-normal * J_mag, rb);
-	//}
+	float J_normal_mag = (-(e+1)*v_rel_normal)/(a->invMass + b->invMass + pow(cross(ra,normal),2)*a->invMOI + pow(cross(rb,normal),2)*b->invMOI);
+	float J_tangantial_mag = (-(f)*v_rel_tangential)/(a->invMass + b->invMass + pow(cross(ra,tangent),2)*a->invMOI + pow(cross(rb,tangent),2)*b->invMOI);
+
+	
+	Vec2 J_normal = normal * J_normal_mag;
+	Vec2 J_tangential = tangent * J_tangantial_mag;
+	Vec2 J_final  = J_normal + J_tangential;
+	
+	a->addImpulse(J_final, ra);
+	b->addImpulse(-J_final, rb);
 }
 
 
@@ -95,6 +96,10 @@ bool CollisionDetection::isCollidingPolygonPolygon(Body* a, Body* b, Collision& 
 	Vec2 a_edge, b_edge;
 	Vec2 a_point,b_point;
 	
+	if(fabs(a->angle - b->angle) < 1e-10){		//TODO:collision resolution doesnt work for perfectly aligned polygons so for now just change the angle of one of them a little bit. fix resolution code later
+		a->angle += 0.0001;	
+	}
+	
 	float ab_separation = apoly->findMinSeparation(bpoly,a_edge,b_point);
 	if(ab_separation>=0){
 		return false;
@@ -104,6 +109,10 @@ bool CollisionDetection::isCollidingPolygonPolygon(Body* a, Body* b, Collision& 
 	if(ba_separation>=0){
 		return false;
 	}
+	
+	/*if(fabs(a->angle - b->angle) < 1e-10){		
+		a->angle -= 0.0001;	
+	}*/
 
 	ci.a = a;
 	ci.b = b;

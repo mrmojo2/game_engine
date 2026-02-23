@@ -24,17 +24,24 @@ void Application::setup(){
 	
 
 	Body *bottom = new Body(Box(ww-10,100),ww/2,wh - 75,0.0);
-	bottom->elasticity = 0.5;
+	bottom->elasticity = 0.2;
 	bodies.push_back(bottom);
 	
-	Body *b2 = new Body(Box(200,200),ww/2,wh/2,0.0);
-	b2->angle = 0.9;
-	b2->elasticity = 0.3;
+	/*Body *right = new Body(Box(100,wh-10),ww-75,wh/2,0.0);
+	right->elasticity = 0.2;
+	bodies.push_back(right);
+	
+	Body *left = new Body(Box(100,wh-10),75,wh/2,0.0);
+	left->elasticity = 0.2;
+	bodies.push_back(left);*/
+	
+	Body *b2 = new Body(Box(200,50),ww/2,wh/2+100,0.0);
+	b2->elasticity = 0.2;
+	b2->angle =  0.5;
 	bodies.push_back(b2);
  
 
 	/*Body *b3 = new Body(Box(200,200),0,0,1.0);
-	//b3->angle = 0.45;
 	b3->elasticity = 0.3;
 	bodies.push_back(b3);*/
 }
@@ -73,14 +80,14 @@ void Application::input(){
 				mousePosX = event.motion.x;
 				mousePosY = event.motion.y;
 
-				/*bodies[2]->position.x = mousePosX;
-				bodies[2]->position.y = mousePosY;*/
+				/*bodies[4]->position.x = mousePosX;
+				bodies[4]->position.y = mousePosY;*/
 
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(event.button.button == SDL_BUTTON_LEFT){
-					Body *box = new Body(Box(100,100),mousePosX, mousePosY, 1.0);
-					box->angle = Utils::get_random_float(0.0,3.1415);
+					Body *box = new Body(Box(50,50),mousePosX, mousePosY, 1.0);
+					//box->angle = Utils::get_random_float(0.0,3.1415);
 					box->elasticity  = 0.4;
 					bodies.push_back(box);
 				}
@@ -157,8 +164,7 @@ void Application::update(){
 
 				Graphics::DrawFillCircle(collision.contactPoint1.x, collision.contactPoint1.y,5,0xffff0000);
 				Graphics::DrawFillCircle(collision.contactPoint2.x, collision.contactPoint2.y,5,0xff0000ff);
-
-				
+	
 				collision.resolveCollision();
 			}
 		}
@@ -199,7 +205,7 @@ void Application::render(){
 		Uint32 color = body->isColliding ? 0xff0000ff: 0xffffffff; 
 		if(body->shape->getShapeType() == CIRCLE){
 			Circle* c = (Circle* )body->shape;
-			Graphics::DrawFillCircle(body->position.x,body->position.y,c->radius,color);
+			Graphics::DrawCircle(body->position.x,body->position.y,c->radius,body->angle,color);
 		}else if(body->shape->getShapeType() == BOX){
 			Box* b = (Box* )body->shape;
 			Graphics::DrawPolygon(body->position.x, body->position.y, b->worldVertices,color);
